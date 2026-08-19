@@ -1,0 +1,9 @@
+data/*.csv
+data/*.zip
+data/*.pkl
+data/*.npy
+data/*.cbm
+__pycache__/
+*.pyc
+
+catboost_info/

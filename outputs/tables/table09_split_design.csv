@@ -1,0 +1,2 @@
+period,years,records,untimely,untimely_rate_pct,sampling
+train,"[2020, 2021, 2022, 2023]",128118,21353,16.666666666666664,all positives + 5 negatives each
