@@ -47,4 +47,18 @@ with the `year`-inclusive model, and was not rescored. All reported test metrics
 (Tables 15, 16, decile lift, final\_test\_summary) come from that original run.
 
 Baseline table retained as `outputs/tables/ablation\_validation\_with\_year.csv`.
+## Post-hoc: year removal recovers test recall
 
+Re-scoring 2025 without `year` raised recall at the frozen 0.60 threshold
+from 0.161 to 0.278, while ROC-AUC was essentially unchanged
+(0.9718 → 0.9721). Ranking did not improve; the score distribution simply
+stopped drifting below the cut-point.
+
+This confirms the Section 6.6 hypothesis that year-extrapolation, not
+degraded ranking, caused the threshold failure — a claim the report
+currently makes without experimental isolation.
+
+**Not an independent result.** The test year had already been scored, so
+this is a confirmatory diagnostic, not a held-out evaluation. Headline
+test metrics remain those in `final_test_summary.csv`.
+Numbers: `outputs/tables/posthoc_test_no_year.csv`.
