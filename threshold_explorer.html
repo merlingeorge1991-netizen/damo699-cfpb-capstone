@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review threshold explorer — CFPB untimely-response triage</title>
+<style>
+  :root{
+    --paper:#EDEFF2;
+    --card:#F8F9FB;
+    --ink:#10203A;
+    --ink-soft:#4A5768;
+    --rule:#C3CAD4;
+    --caught:#1E6E6E;
+    --missed:#A32E3C;
+    --burden:#8A6D1F;
+    --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:32px 24px 64px;
+    background:var(--paper);color:var(--ink);
+    font-family:var(--body);line-height:1.5;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px}
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(28px,5vw,42px);line-height:1.1;margin:0 0 14px;
+  }
+  .provenance{
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+    margin:0;display:flex;flex-wrap:wrap;gap:4px 18px;
+  }
+  .provenance b{font-weight:600;color:var(--ink)}
+
+  .rail{
+    background:var(--card);border:1px solid var(--rule);
+    padding:22px 24px 18px;margin-bottom:26px;
+  }
+  .rail-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    gap:16px;flex-wrap:wrap;margin-bottom:14px;
+  }
+  .rail-label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-soft);
+  }
+  .rail-value{font-family:var(--display);font-size:38px;line-height:1}
+  input[type=range]{width:100%;margin:0;accent-color:var(--ink);height:28px}
+  input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+  .ticks{
+    display:flex;justify-content:space-between;
+    font-family:var(--mono);font-size:10px;color:var(--ink-soft);margin-top:2px;
+  }
+  .hint{font-size:13px;color:var(--ink-soft);margin:12px 0 0}
+
+  .readouts{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:26px;
+  }
+  .readout{background:var(--card);padding:18px 20px 20px}
+  .readout .k{
+    font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:8px;
+  }
+  .readout .v{font-family:var(--display);font-size:32px;line-height:1;display:block}
+  .readout .s{font-size:12px;color:var(--ink-soft);display:block;margin-top:7px}
+  .readout.caught .v{color:var(--caught)}
+  .readout.missed .v{color:var(--missed)}
+  .readout.burden .v{color:var(--burden)}
+
+  .queue{
+    background:var(--card);border:1px solid var(--rule);
+    padding:22px 24px 24px;margin-bottom:26px;
+  }
+  .queue h2{
+    font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 4px;
+  }
+  .queue p{font-size:13px;color:var(--ink-soft);margin:0 0 18px}
+  .dots{
+    display:grid;grid-template-columns:repeat(20,1fr);
+    gap:4px;max-width:520px;
+  }
+  .dot{
+    aspect-ratio:1;border-radius:50%;
+    background:var(--rule);
+    transition:background .18s ease;
+  }
+  .dot.hit{background:var(--caught)}
+  .legend{
+    display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+  }
+  .legend span{display:flex;align-items:center;gap:7px}
+  .swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+  table{
+    width:100%;border-collapse:collapse;background:var(--card);
+    font-family:var(--mono);font-size:12px;
+  }
+  caption{
+    text-align:left;font-family:var(--display);font-size:19px;
+    margin-bottom:10px;
+  }
+  th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--rule)}
+  th{
+    font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:600;border-bottom:1.5px solid var(--ink);
+  }
+  th:first-child,td:first-child{text-align:left}
+  tr.on td{background:var(--ink);color:var(--paper);font-weight:600}
+  .tablewrap{overflow-x:auto;border:1px solid var(--rule);margin-bottom:26px}
+
+  footer{
+    border-top:1px solid var(--rule);padding-top:18px;
+    font-size:13px;color:var(--ink-soft);
+  }
+  footer p{margin:0 0 9px}
+  footer b{color:var(--ink)}
+
+  @media (max-width:620px){
+    .readouts{grid-template-columns:1fr}
+    .dots{grid-template-columns:repeat(10,1fr)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .dot{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">DAMO 699 · Validation year 2024</p>
+    <h1>What a review threshold actually costs</h1>
+    <p class="provenance">
+      <span><b>2,734,269</b> complaints scored</span>
+      <span><b>7,738</b> untimely</span>
+      <span><b>0.283%</b> base rate</span>
+      <span>logistic regression, <b>year</b> excluded</span>
+    </p>
+  </header>
+
+  <div class="rail">
+    <div class="rail-head">
+      <span class="rail-label">Score threshold</span>
+      <span class="rail-value" id="thr">0.60</span>
+    </div>
+    <input type="range" id="slider" min="0" max="12" step="1" value="6"
+           aria-label="Score threshold" aria-describedby="hint">
+    <div class="ticks"><span>0.30</span><span>0.60</span><span>0.90</span></div>
+    <p class="hint" id="hint">
+      The slider moves between the thirteen thresholds that were actually measured on the
+      validation year. Nothing here is interpolated.
+    </p>
+  </div>
+
+  <div class="readouts">
+    <div class="readout caught">
+      <span class="k">Untimely cases caught</span>
+      <span class="v" id="tp">4,346</span>
+      <span class="s" id="rec">57.6% of all untimely complaints</span>
+    </div>
+    <div class="readout missed">
+      <span class="k">Untimely cases missed</span>
+      <span class="v" id="fn">3,392</span>
+      <span class="s" id="fnpct">43.8% slip through</span>
+    </div>
+    <div class="readout burden">
+      <span class="k">Complaints to review</span>
+      <span class="v" id="flag">31,685</span>
+      <span class="s" id="rpc">7.3 reviewed per case found</span>
+    </div>
+  </div>
+
+  <section class="queue">
+    <h2>Out of every 100 complaints your team opens</h2>
+    <p id="queuecap">14 turn out to be genuinely untimely. The other 86 were responded to on time.</p>
+    <div class="dots" id="dots" role="img" aria-labelledby="queuecap"></div>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--caught)"></i> genuinely untimely</span>
+      <span><i class="swatch" style="background:var(--rule)"></i> false positive</span>
+    </div>
+  </section>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Validation threshold sweep</caption>
+      <thead>
+        <tr>
+          <th scope="col">Threshold</th><th scope="col">Recall</th><th scope="col">Precision</th>
+          <th scope="col">Flagged</th><th scope="col">Flag rate</th><th scope="col">Reviews / catch</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p><b>Reading this.</b> Raising the threshold buys precision and pays for it in recall.
+    At 0.30 the team finds 86% of untimely responses but opens fourteen files for every one
+    it confirms. At 0.90 it opens two files per confirmation and finds under a fifth of them.
+    There is no threshold that does both, so the choice belongs to whoever owns the review
+    capacity, not to the model.</p>
+    <p><b>Scores are not probabilities.</b> Training used 5:1 undersampling, which lifts the
+    base rate about thirty-five-fold, so a score of 0.60 does not mean a 60% chance of an
+    untimely response. Treat the numbers as ranks.</p>
+    <p><b>This is validation, not test.</b> The 2025 test year was scored once, with the
+    earlier feature set, and was not rescored. On that year recall at the frozen 0.60 threshold
+    fell to 0.161 even though prevalence rose — the ranking transferred across the year
+    boundary but the calibrated cut-point did not.</p>
+  </footer>
+
+</div>
+
+<script>
+const rows = [
+  {t:0.30,p:0.0712,r:0.8629,tp:6677,fp:87132,fn:1061,fl:93809,fr:0.03431,rpc:14.05},
+  {t:0.35,p:0.0754,r:0.8396,tp:6497,fp:79638,fn:1241,fl:86135,fr:0.03150,rpc:13.26},
+  {t:0.40,p:0.0804,r:0.8138,tp:6297,fp:72020,fn:1441,fl:78317,fr:0.02864,rpc:12.44},
+  {t:0.45,p:0.0864,r:0.7675,tp:5939,fp:62838,fn:1799,fl:68777,fr:0.02515,rpc:11.58},
+  {t:0.50,p:0.0941,r:0.7105,tp:5498,fp:52930,fn:2240,fl:58428,fr:0.02137,rpc:10.63},
+  {t:0.55,p:0.1082,r:0.6397,tp:4950,fp:40811,fn:2788,fl:45761,fr:0.01674,rpc:9.24},
+  {t:0.60,p:0.1372,r:0.5616,tp:4346,fp:27339,fn:3392,fl:31685,fr:0.01159,rpc:7.29},
+  {t:0.65,p:0.1752,r:0.4805,tp:3718,fp:17503,fn:4020,fl:21221,fr:0.00776,rpc:5.71},
+  {t:0.70,p:0.2112,r:0.3881,tp:3003,fp:11213,fn:4735,fl:14216,fr:0.00520,rpc:4.73},
+  {t:0.75,p:0.2519,r:0.3138,tp:2428,fp:7211, fn:5310,fl:9639, fr:0.00353,rpc:3.97},
+  {t:0.80,p:0.3146,r:0.2749,tp:2127,fp:4634, fn:5611,fl:6761, fr:0.00247,rpc:3.18},
+  {t:0.85,p:0.3990,r:0.2433,tp:1883,fp:2836, fn:5855,fl:4719, fr:0.00173,rpc:2.51},
+  {t:0.90,p:0.4648,r:0.1929,tp:1493,fp:1719, fn:6245,fl:3212, fr:0.00117,rpc:2.15}
+];
+const TOTAL_UNTIMELY = 7738;
+const n = x => x.toLocaleString('en-US');
+const pct = x => (x*100).toFixed(1) + '%';
+
+const dots = document.getElementById('dots');
+for (let i=0;i<100;i++) dots.appendChild(
+  Object.assign(document.createElement('div'), {className:'dot'})
+);
+const dotEls = dots.children;
+
+const tbody = document.getElementById('tbody');
+rows.forEach((d,i) => {
+  const tr = document.createElement('tr');
+  tr.id = 'row'+i;
+  tr.innerHTML = `<td>${d.t.toFixed(2)}</td><td>${pct(d.r)}</td><td>${pct(d.p)}</td>`
+    + `<td>${n(d.fl)}</td><td>${pct(d.fr)}</td><td>${d.rpc.toFixed(1)}</td>`;
+  tbody.appendChild(tr);
+});
+
+function render(i){
+  const d = rows[i];
+  document.getElementById('thr').textContent = d.t.toFixed(2);
+  document.getElementById('tp').textContent = n(d.tp);
+  document.getElementById('rec').textContent = pct(d.r) + ' of all untimely complaints';
+  document.getElementById('fn').textContent = n(d.fn);
+  document.getElementById('fnpct').textContent = pct(d.fn/TOTAL_UNTIMELY) + ' slip through';
+  document.getElementById('flag').textContent = n(d.fl);
+  document.getElementById('rpc').textContent = d.rpc.toFixed(1) + ' reviewed per case found';
+
+  const hits = Math.round(d.p*100);
+  for (let k=0;k<100;k++) dotEls[k].classList.toggle('hit', k<hits);
+  document.getElementById('queuecap').textContent =
+    `${hits} turn out to be genuinely untimely. The other ${100-hits} were responded to on time.`;
+
+  [...tbody.children].forEach((tr,k) => tr.classList.toggle('on', k===i));
+}
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', e => render(+e.target.value));
+render(6);
+</script>
+</body>
+</html>
