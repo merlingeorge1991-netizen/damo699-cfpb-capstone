@@ -59,6 +59,11 @@ CATEGORICAL_FEATURES = [
 
 NUMERIC_FEATURES = ["year", "month", "quarter"]
 
+# DO NOT REMOVE "year" HERE. The reported model uses all three temporal
+# features, and every figure in the report depends on that. Ablation
+# variants override this list inside year_ablation.py; editing it here
+# silently changes the model for the whole pipeline.
+
 # Columns read from the raw CSV. Everything else is discarded at read time,
 # which is what makes a 1 GB+ file tractable in chunks.
 USECOLS = [COL_ID, COL_DATE, COL_TARGET, COL_NARRATIVE] + CATEGORICAL_FEATURES
