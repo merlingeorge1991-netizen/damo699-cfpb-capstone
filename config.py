@@ -57,7 +57,7 @@ CATEGORICAL_FEATURES = [
     "Submitted via",
 ]
 
-NUMERIC_FEATURES = ["year", "month", "quarter"]
+NUMERIC_FEATURES = ["month", "quarter"]
 
 # Columns read from the raw CSV. Everything else is discarded at read time,
 # which is what makes a 1 GB+ file tractable in chunks.
